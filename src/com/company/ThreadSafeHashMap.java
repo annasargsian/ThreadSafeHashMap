@@ -6,9 +6,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
 
-public class ThreadSafeHashMap<K,V> implements Map<K,V> {
+public class ThreadSafeHashMap<K, V> implements Map<K, V> {
 
-    private final Map<K,V> map = new HashMap<K, V>();
+    private final Map<K, V> map = new HashMap<K, V>();
     private ReadWriteLock locked = new ReentrantReadWriteLock();
 
 
@@ -24,23 +24,23 @@ public class ThreadSafeHashMap<K,V> implements Map<K,V> {
 
     @Override
     public boolean containsKey(Object key) {
-        return doWithReadLock(()->map.containsKey(key));
+        return doWithReadLock(() -> map.containsKey(key));
     }
 
     @Override
     public boolean containsValue(Object value) {
-        return doWithReadLock(()->map.containsValue(value));
+        return doWithReadLock(() -> map.containsValue(value));
     }
 
     @Override
     public V get(Object key) {
-        return doWithReadLock(()-> map.get(key));
+        return doWithReadLock(() -> map.get(key));
     }
 
     @Override
     public V put(K key, V value) {
         return doWithWriteLock(() -> {
-            V put = map.put(key,value);
+            V put = map.put(key, value);
             System.out.println(Thread.currentThread().getName() + " " + map);
             return put;
         });
@@ -49,13 +49,13 @@ public class ThreadSafeHashMap<K,V> implements Map<K,V> {
 
     @Override
     public V remove(Object key) {
-        return doWithWriteLock(()->map.remove(key));
+        return doWithWriteLock(() -> map.remove(key));
     }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
         locked.writeLock().lock();
-        try{
+        try {
             map.putAll(m);
         } finally {
             locked.writeLock().unlock();
@@ -65,7 +65,7 @@ public class ThreadSafeHashMap<K,V> implements Map<K,V> {
     @Override
     public void clear() {
         locked.writeLock().lock();
-        try{
+        try {
             map.clear();
         } finally {
             locked.writeLock().unlock();
@@ -88,17 +88,18 @@ public class ThreadSafeHashMap<K,V> implements Map<K,V> {
     }
 
 
-    private  <R> R doWithReadLock(Supplier<R> supplier){
+    private <R> R doWithReadLock(Supplier<R> supplier) {
         this.locked.readLock().lock();
-        try{
+        try {
             return supplier.get();
         } finally {
             this.locked.readLock().unlock();
         }
     }
-    private <R> R doWithWriteLock(Supplier<R> supplier){
+
+    private <R> R doWithWriteLock(Supplier<R> supplier) {
         this.locked.writeLock().lock();
-        try{
+        try {
             return supplier.get();
         } finally {
             this.locked.writeLock().unlock();
